@@ -59,12 +59,11 @@
 #include "dict.h"              // for Dict
 #include "edgblob.h"           // for extract_edges
 #include "elst.h"              // for ELIST_ITERATOR, ELISTIZE, ELISTIZEH
-#include "environ.h"           // for l_uint8, FALSE, TRUE
+#include "environ.h"           // for l_uint8
 #include "equationdetect.h"    // for EquationDetect
 #include "errcode.h"           // for ASSERT_HOST
 #include "globaloc.h"          // for SavePixForCrash, signal_exit
 #include "helpers.h"           // for IntCastRounded, chomp_string
-#include "host.h"              // for BOOL8
 #include "imageio.h"           // for IFF_TIFF_G4, IFF_TIFF, IFF_TIFF_G3
 #include "intfx.h"             // for INT_FX_RESULT_STRUCT
 #include "mutableiterator.h"   // for MutableIterator
@@ -91,7 +90,7 @@
 #include "tprintf.h"           // for tprintf
 #include "werd.h"              // for WERD, WERD_IT, W_FUZZY_NON, W_FUZZY_SP
 
-BOOL_VAR(stream_filelist, FALSE, "Stream a filelist from stdin");
+BOOL_VAR(stream_filelist, false, "Stream a filelist from stdin");
 
 namespace tesseract {
 
@@ -176,8 +175,8 @@ static void addAvailableLanguages(const STRING &datadir, const STRING &base,
 
 // Compare two STRING values (used for sorting).
 static int CompareSTRING(const void* p1, const void* p2) {
-  const STRING* s1 = static_cast<const STRING*>(p1);
-  const STRING* s2 = static_cast<const STRING*>(p2);
+  const auto* s1 = static_cast<const STRING*>(p1);
+  const auto* s2 = static_cast<const STRING*>(p2);
   return strcmp(s1->c_str(), s2->c_str());
 }
 
@@ -298,7 +297,7 @@ bool TessBaseAPI::SetDebugVariable(const char* name, const char* value) {
 }
 
 bool TessBaseAPI::GetIntVariable(const char *name, int *value) const {
-  IntParam *p = ParamUtils::FindParam<IntParam>(
+  auto *p = ParamUtils::FindParam<IntParam>(
       name, GlobalParams()->int_params, tesseract_->params()->int_params);
   if (p == nullptr) return false;
   *value = (int32_t)(*p);
@@ -306,21 +305,21 @@ bool TessBaseAPI::GetIntVariable(const char *name, int *value) const {
 }
 
 bool TessBaseAPI::GetBoolVariable(const char *name, bool *value) const {
-  BoolParam *p = ParamUtils::FindParam<BoolParam>(
+  auto *p = ParamUtils::FindParam<BoolParam>(
       name, GlobalParams()->bool_params, tesseract_->params()->bool_params);
   if (p == nullptr) return false;
-  *value = (BOOL8)(*p);
+  *value = bool(*p);
   return true;
 }
 
 const char *TessBaseAPI::GetStringVariable(const char *name) const {
-  StringParam *p = ParamUtils::FindParam<StringParam>(
+  auto *p = ParamUtils::FindParam<StringParam>(
       name, GlobalParams()->string_params, tesseract_->params()->string_params);
   return (p != nullptr) ? p->string() : nullptr;
 }
 
 bool TessBaseAPI::GetDoubleVariable(const char *name, double *value) const {
-  DoubleParam *p = ParamUtils::FindParam<DoubleParam>(
+  auto *p = ParamUtils::FindParam<DoubleParam>(
       name, GlobalParams()->double_params, tesseract_->params()->double_params);
   if (p == nullptr) return false;
   *value = (double)(*p);
@@ -873,7 +872,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC* monitor) {
 
   if (truth_cb_ != nullptr) {
     tesseract_->wordrec_run_blamer.set_value(true);
-    PageIterator *page_it = new PageIterator(
+    auto *page_it = new PageIterator(
             page_res_, tesseract_, thresholder_->GetScaleFactor(),
             thresholder_->GetScaledYResolution(),
             rect_left_, rect_top_, rect_width_, rect_height_);
@@ -1989,7 +1988,7 @@ bool TessBaseAPI::Threshold(Pix** pix) {
             y_res, kMinCredibleResolution);
     thresholder_->SetSourceYResolution(kMinCredibleResolution);
   }
-  PageSegMode pageseg_mode =
+  auto pageseg_mode =
       static_cast<PageSegMode>(
           static_cast<int>(tesseract_->tessedit_pageseg_mode));
   if (!thresholder_->ThresholdToPix(pageseg_mode, pix)) return false;
@@ -2325,7 +2324,7 @@ ROW *TessBaseAPI::MakeTessOCRRow(float baseline,
 TBLOB *TessBaseAPI::MakeTBLOB(Pix *pix) {
   int width = pixGetWidth(pix);
   int height = pixGetHeight(pix);
-  BLOCK block("a character", TRUE, 0, 0, 0, 0, width, height);
+  BLOCK block("a character", true, 0, 0, 0, 0, width, height);
 
   // Create C_BLOBs from the page
   extract_edges(pix, &block);
@@ -2419,7 +2418,7 @@ void TessBaseAPI::AdaptToCharacter(const char *unichar_repr,
 
 
 PAGE_RES* TessBaseAPI::RecognitionPass1(BLOCK_LIST* block_list) {
-  PAGE_RES *page_res = new PAGE_RES(false, block_list,
+  auto *page_res = new PAGE_RES(false, block_list,
                                     &(tesseract_->prev_word_best_choice_));
   tesseract_->recog_all_words(page_res, nullptr, nullptr, nullptr, 1);
   return page_res;
@@ -2461,7 +2460,7 @@ ELISTIZEH(TESS_CHAR)
 ELISTIZE(TESS_CHAR)
 
 static void add_space(TESS_CHAR_IT* it) {
-  TESS_CHAR *t = new TESS_CHAR(0, " ");
+  auto *t = new TESS_CHAR(0, " ");
   it->add_after_then_move(t);
 }
 
@@ -2493,7 +2492,7 @@ static void extract_result(TESS_CHAR_IT* out,
       add_space(out);
     int n = strlen(len);
     for (int i = 0; i < n; i++) {
-      TESS_CHAR *tc = new TESS_CHAR(rating_to_cost(word->best_choice->rating()),
+      auto *tc = new TESS_CHAR(rating_to_cost(word->best_choice->rating()),
                                     str, *len);
       tc->box = real_rect.intersection(word->box_word->BlobBox(i));
       out->add_after_then_move(tc);
@@ -2619,7 +2618,7 @@ void TessBaseAPI::RunAdaptiveClassifier(TBLOB* blob,
                                         int* unichar_ids,
                                         float* ratings,
                                         int* num_matches_returned) {
-  BLOB_CHOICE_LIST* choices = new BLOB_CHOICE_LIST;
+  auto* choices = new BLOB_CHOICE_LIST;
   tesseract_->AdaptiveClassifier(blob, choices);
   BLOB_CHOICE_IT choices_it(choices);
   int& index = *num_matches_returned;

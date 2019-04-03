@@ -14,15 +14,16 @@
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
  *****************************************************************************/
+
 #ifndef   KDTREE_H
 #define   KDTREE_H
 
 /*-----------------------------------------------------------------------------
           Include Files and Type Defines
 -----------------------------------------------------------------------------*/
-#include "cutil.h"      // for void_proc
-#include "host.h"
 #include "ocrfeatures.h"
+
+typedef void (*void_proc)(...);
 
 /**
 NOTE:  All circular parameters of all keys must be in the range
@@ -91,4 +92,5 @@ void Walk(KDTREE *tree, void_proc action, void *context,
 void InsertNodes(KDTREE *tree, KDNODE *nodes);
 
 void FreeSubTree(KDNODE *SubTree);
+
 #endif

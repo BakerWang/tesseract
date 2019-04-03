@@ -20,7 +20,6 @@
 #include <vector>       // for std::vector
 
 #include "cluster.h"
-#include "cutil.h"      // for void_proc
 #include "emalloc.h"
 #include "genericheap.h"
 #include "helpers.h"
@@ -405,9 +404,9 @@ MakeClusterer (int16_t SampleSize, const PARAM_DESC ParamDesc[]) {
   Clusterer->KDTree = MakeKDTree (SampleSize, ParamDesc);
 
   // Initialize cache of histogram buckets to minimize recomputing them.
-  for (int d = 0; d < DISTRIBUTION_COUNT; ++d) {
+  for (auto & d : Clusterer->bucket_cache) {
     for (int c = 0; c < MAXBUCKETS + 1 - MINBUCKETS; ++c)
-      Clusterer->bucket_cache[d][c] = nullptr;
+      d[c] = nullptr;
   }
 
   return Clusterer;
@@ -439,8 +438,8 @@ SAMPLE* MakeSample(CLUSTERER * Clusterer, const float* Feature,
   Sample = (SAMPLE *) Emalloc (sizeof (SAMPLE) +
     (Clusterer->SampleSize -
     1) * sizeof (float));
-  Sample->Clustered = FALSE;
-  Sample->Prototype = FALSE;
+  Sample->Clustered = false;
+  Sample->Prototype = false;
   Sample->SampleCount = 1;
   Sample->Left = nullptr;
   Sample->Right = nullptr;
@@ -495,7 +494,7 @@ LIST ClusterSamples(CLUSTERER *Clusterer, CLUSTERCONFIG *Config) {
   // out, which makes it safe to delete the clusterer.
   LIST proto_list = Clusterer->ProtoList;
   iterate(proto_list) {
-    PROTOTYPE *proto = reinterpret_cast<PROTOTYPE *>(first_node(proto_list));
+    auto *proto = reinterpret_cast<PROTOTYPE *>(first_node(proto_list));
     proto->Cluster = nullptr;
   }
   return Clusterer->ProtoList;
@@ -520,10 +519,10 @@ void FreeClusterer(CLUSTERER *Clusterer) {
     if (Clusterer->Root != nullptr)
       FreeCluster (Clusterer->Root);
     // Free up all used buckets structures.
-    for (int d = 0; d < DISTRIBUTION_COUNT; ++d) {
+    for (auto & d : Clusterer->bucket_cache) {
       for (int c = 0; c < MAXBUCKETS + 1 - MINBUCKETS; ++c)
-        if (Clusterer->bucket_cache[d][c] != nullptr)
-          FreeBuckets(Clusterer->bucket_cache[d][c]);
+        if (d[c] != nullptr)
+          FreeBuckets(d[c]);
     }
 
     free(Clusterer);
@@ -550,11 +549,11 @@ void FreeProtoList(LIST *ProtoList) {
  * @return None
  */
 void FreePrototype(void *arg) {  //PROTOTYPE     *Prototype)
-  PROTOTYPE *Prototype = (PROTOTYPE *) arg;
+  auto *Prototype = (PROTOTYPE *) arg;
 
   // unmark the corresponding cluster (if there is one
   if (Prototype->Cluster != nullptr)
-    Prototype->Cluster->Prototype = FALSE;
+    Prototype->Cluster->Prototype = false;
 
   // deallocate the prototype statistics and then the prototype itself
   free(Prototype->Distrib);
@@ -587,7 +586,7 @@ CLUSTER *NextSample(LIST *SearchState) {
     return (nullptr);
   Cluster = (CLUSTER *) first_node (*SearchState);
   *SearchState = pop (*SearchState);
-  while (TRUE) {
+  for (;;) {
     if (Cluster->Left == nullptr)
       return (Cluster);
     *SearchState = push (*SearchState, Cluster->Right);
@@ -791,15 +790,15 @@ static CLUSTER* MakeNewCluster(CLUSTERER* Clusterer,
   // allocate the new cluster and initialize it
   Cluster = (CLUSTER *) Emalloc(
       sizeof(CLUSTER) + (Clusterer->SampleSize - 1) * sizeof(float));
-  Cluster->Clustered = FALSE;
-  Cluster->Prototype = FALSE;
+  Cluster->Clustered = false;
+  Cluster->Prototype = false;
   Cluster->Left = TempCluster->Cluster;
   Cluster->Right = TempCluster->Neighbor;
   Cluster->CharID = -1;
 
   // mark the old clusters as "clustered" and delete them from the kd-tree
-  Cluster->Left->Clustered = TRUE;
-  Cluster->Right->Clustered = TRUE;
+  Cluster->Left->Clustered = true;
+  Cluster->Right->Clustered = true;
   KDDelete(Clusterer->KDTree, Cluster->Left->Mean, Cluster->Left);
   KDDelete(Clusterer->KDTree, Cluster->Right->Mean, Cluster->Right);
 
@@ -1025,7 +1024,7 @@ static PROTOTYPE* MakeDegenerateProto(  //this was MinSample
         Proto = NewMixedProto (N, Cluster, Statistics);
         break;
     }
-    Proto->Significant = FALSE;
+    Proto->Significant = false;
   }
   return (Proto);
 }                                // MakeDegenerateProto
@@ -1519,17 +1518,17 @@ static PROTOTYPE *NewSimpleProto(int16_t N, CLUSTER *Cluster) {
     Proto->Mean[i] = Cluster->Mean[i];
   Proto->Distrib = nullptr;
 
-  Proto->Significant = TRUE;
-  Proto->Merged = FALSE;
+  Proto->Significant = true;
+  Proto->Merged = false;
   Proto->Style = spherical;
   Proto->NumSamples = Cluster->SampleCount;
   Proto->Cluster = Cluster;
-  Proto->Cluster->Prototype = TRUE;
+  Proto->Cluster->Prototype = true;
   return (Proto);
 }                                // NewSimpleProto
 
 /**
- * This routine returns TRUE if the specified covariance
+ * This routine returns true if the specified covariance
  * matrix indicates that all N dimensions are independent of
  * one another.  One dimension is judged to be independent of
  * another when the magnitude of the corresponding correlation
@@ -1544,7 +1543,7 @@ static PROTOTYPE *NewSimpleProto(int16_t N, CLUSTER *Cluster) {
  * @param N number of dimensions
  * @param CoVariance  ptr to a covariance matrix
  * @param Independence  max off-diagonal correlation coefficient
- * @return  TRUE if dimensions are independent, FALSE otherwise
+ * @return true if dimensions are independent, false otherwise
  */
 static bool
 Independent(PARAM_DESC* ParamDesc,
@@ -2000,13 +1999,13 @@ static uint16_t UniformBucket(PARAM_DESC *ParamDesc,
 
 /**
  * This routine performs a chi-square goodness of fit test
- * on the histogram data in the Buckets data structure.  TRUE
- * is returned if the histogram matches the probability
+ * on the histogram data in the Buckets data structure.
+ * true is returned if the histogram matches the probability
  * distribution which was specified when the Buckets
- * structure was originally created.  Otherwise FALSE is
+ * structure was originally created.  Otherwise false is
  * returned.
  * @param Buckets   histogram data to perform chi-square test on
- * @return TRUE if samples match distribution, FALSE otherwise
+ * @return true if samples match distribution, false otherwise
  */
 static bool DistributionOK(BUCKETS* Buckets) {
   float FrequencyDifference;
@@ -2141,12 +2140,12 @@ static void InitBuckets(BUCKETS *Buckets) {
  *
  * @param arg1 chi-squared struct being tested for a match
  * @param arg2 chi-squared struct that is the search key
- * @return TRUE if ChiStruct's Alpha matches SearchKey's Alpha
+ * @return true if ChiStruct's Alpha matches SearchKey's Alpha
  */
 static int AlphaMatch(void *arg1,    //CHISTRUCT                             *ChiStruct,
                void *arg2) {  //CHISTRUCT                             *SearchKey)
-  CHISTRUCT *ChiStruct = (CHISTRUCT *) arg1;
-  CHISTRUCT *SearchKey = (CHISTRUCT *) arg2;
+  auto *ChiStruct = (CHISTRUCT *) arg1;
+  auto *SearchKey = (CHISTRUCT *) arg2;
 
   return (ChiStruct->Alpha == SearchKey->Alpha);
 
@@ -2272,8 +2271,8 @@ static double ChiArea(CHISTRUCT *ChiParams, double x) {
  * This routine looks at all samples in the specified cluster.
  * It computes a running estimate of the percentage of the
  * characters which have more than 1 sample in the cluster.
- * When this percentage exceeds MaxIllegal, TRUE is returned.
- * Otherwise FALSE is returned.  The CharID
+ * When this percentage exceeds MaxIllegal, true is returned.
+ * Otherwise false is returned.  The CharID
  * fields must contain integers which identify the training
  * characters which were used to generate the sample.  One
  * integer is used for each sample.  The NumChar field in
@@ -2289,16 +2288,14 @@ static double ChiArea(CHISTRUCT *ChiParams, double x) {
  * @param Cluster   cluster containing samples to be tested
  * @param MaxIllegal  max percentage of samples allowed to have
  *        more than 1 feature in the cluster
- * @return TRUE if the cluster should be split, FALSE otherwise.
+ * @return true if the cluster should be split, false otherwise.
  */
 static bool
 MultipleCharSamples(CLUSTERER* Clusterer,
                     CLUSTER* Cluster, float MaxIllegal)
 #define ILLEGAL_CHAR    2
 {
-  static BOOL8 *CharFlags = nullptr;
-  static int32_t NumFlags = 0;
-  int i;
+  static std::vector<uint8_t> CharFlags;
   LIST SearchState;
   SAMPLE *Sample;
   int32_t CharID;
@@ -2310,24 +2307,22 @@ MultipleCharSamples(CLUSTERER* Clusterer,
   NumCharInCluster = Cluster->SampleCount;
   NumIllegalInCluster = 0;
 
-  if (Clusterer->NumChar > NumFlags) {
-    free(CharFlags);
-    NumFlags = Clusterer->NumChar;
-    CharFlags = (BOOL8 *) Emalloc (NumFlags * sizeof (BOOL8));
+  if (Clusterer->NumChar > CharFlags.size()) {
+    CharFlags.resize(Clusterer->NumChar);
   }
 
-  for (i = 0; i < NumFlags; i++)
-    CharFlags[i] = FALSE;
+  for (auto& CharFlag : CharFlags)
+    CharFlag = false;
 
   // find each sample in the cluster and check if we have seen it before
   InitSampleSearch(SearchState, Cluster);
   while ((Sample = NextSample (&SearchState)) != nullptr) {
     CharID = Sample->CharID;
-    if (CharFlags[CharID] == FALSE) {
-      CharFlags[CharID] = TRUE;
+    if (CharFlags[CharID] == false) {
+      CharFlags[CharID] = true;
     }
     else {
-      if (CharFlags[CharID] == TRUE) {
+      if (CharFlags[CharID] == true) {
         NumIllegalInCluster++;
         CharFlags[CharID] = ILLEGAL_CHAR;
       }

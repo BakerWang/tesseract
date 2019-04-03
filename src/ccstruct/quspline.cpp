@@ -265,7 +265,7 @@ void QSPLINE::move(            // reposition spline
 /**********************************************************************
  * QSPLINE::overlap
  *
- * Return TRUE if spline2 overlaps this by no more than fraction less
+ * Return true if spline2 overlaps this by no more than fraction less
  * than the bounds of this.
  **********************************************************************/
 
@@ -379,7 +379,7 @@ void QSPLINE::plot(Pix *pix) const {
   int16_t step;  // Index of poly piece
   double increment;  // x increment
   double x;  // x coord
-  double height = static_cast<double>(pixGetHeight(pix));
+  auto height = static_cast<double>(pixGetHeight(pix));
   Pta* points = ptaCreate(QSPLINE_PRECISION * segments);
   const int kLineWidth = 5;
 

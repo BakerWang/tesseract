@@ -31,7 +31,7 @@
 
 #define EXTERN
 
-EXTERN BOOL_VAR (textord_show_fixed_cuts, FALSE,
+EXTERN BOOL_VAR (textord_show_fixed_cuts, false,
 "Draw fixed pitch cell boundaries");
 
 EXTERN ScrollView* to_win = nullptr;
@@ -131,7 +131,7 @@ void plot_parallel_row(                 //draw a row
   FCOORD plot_pt;                //point to plot
                                  //blobs
   BLOBNBOX_IT it = row->blob_list ();
-  float fleft = (float) left;    //floating version
+  auto fleft = (float) left;    //floating version
   float right;                   //end of row
 
   //      left=it.data()->bounding_box().left();
@@ -171,7 +171,7 @@ int32_t thresholds[]               //for drop out
 ) {
   int32_t line_index;              //pixel coord
   ScrollView::Color colour;                 //of histogram
-  float fleft = (float) xleft;   //float version
+  auto fleft = (float) xleft;   //float version
 
   colour = ScrollView::WHITE;
   to_win->Pen(colour);

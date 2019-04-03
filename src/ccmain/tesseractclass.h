@@ -8,7 +8,6 @@
 //              threads in parallel, and keeps the different language
 //              instances separate.
 // Author:      Ray Smith
-// Created:     Fri Mar 07 08:17:01 PST 2008
 //
 // (C) Copyright 2008, Google Inc.
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +33,6 @@
 #include "devanagari_processing.h"  // for ShiroRekhaSplitter
 #include "docqual.h"                // for GARBAGE_LEVEL
 #include "genericvector.h"          // for GenericVector, PointerVector
-#include "host.h"                   // for BOOL8
 #include "pageres.h"                // for WERD_RES (ptr only), PAGE_RES (pt...
 #include "params.h"                 // for BOOL_VAR_H, BoolParam, DoubleParam
 #include "points.h"                 // for FCOORD
@@ -173,7 +171,7 @@ typedef void (Tesseract::*WordRecognizer)(const WordData& word_data,
 class Tesseract : public Wordrec {
  public:
   Tesseract();
-  ~Tesseract();
+  ~Tesseract() override;
 
   // Return appropriate dictionary
   Dict& getDict() override;
@@ -510,7 +508,7 @@ class Tesseract : public Wordrec {
                                 const char* lengths);
   int16_t count_alphanums(const WERD_CHOICE &word);
   int16_t count_alphas(const WERD_CHOICE &word);
-  //// tessedit.h ////////////////////////////////////////////////////////
+
   void read_config_file(const char *filename, SetParamConstraint constraint);
   // Initialize for potentially a set of languages defined by the language
   // string and recursively any additional languages required by any language
@@ -661,7 +659,7 @@ class Tesseract : public Wordrec {
   float blob_noise_score(TBLOB *blob);
   void break_noisiest_blob_word(WERD_RES_LIST &words);
   //// docqual.cpp ////////////////////////////////////////////////////////
-  GARBAGE_LEVEL garbage_word(WERD_RES *word, BOOL8 ok_dict_word);
+  GARBAGE_LEVEL garbage_word(WERD_RES* word, bool ok_dict_word);
   bool potential_word_crunch(WERD_RES* word,
                              GARBAGE_LEVEL garbage_level,
                              bool ok_dict_word);
@@ -1103,7 +1101,7 @@ class Tesseract : public Wordrec {
   double_VAR_H(min_orientation_margin, 7.0,
                "Min acceptable orientation margin");
   BOOL_VAR_H(textord_tabfind_show_vlines, false, "Debug line finding");
-  BOOL_VAR_H(textord_use_cjk_fp_model, FALSE, "Use CJK fixed pitch model");
+  BOOL_VAR_H(textord_use_cjk_fp_model, false, "Use CJK fixed pitch model");
   BOOL_VAR_H(poly_allow_detailed_fx, false,
              "Allow feature extractors to see the original outline");
   BOOL_VAR_H(tessedit_init_config_only, false,
@@ -1124,10 +1122,14 @@ class Tesseract : public Wordrec {
   STRING_VAR_H(page_separator, "\f",
                "Page separator (default is form feed control character)");
   INT_VAR_H(lstm_choice_mode, 0,
-            "Allows to include alternative symbols choices in the hOCR output. "
-            "Valid input values are 0, 1 and 2. 0 is the default value. "
+            "Allows to include alternative symbols choices in the hOCR "
+            "output. "
+            "Valid input values are 0, 1, 2 and 3. 0 is the default value. "
             "With 1 the alternative symbol choices per timestep are included. "
-            "With 2 the alternative symbol choices are accumulated per character.");
+            "With 2 the alternative symbol choices are accumulated per "
+            "character. "
+            "With 3 the alternative symbol choices per timestep are included "
+            "and separated by the suggested segmentation of Tesseract");
 
   //// ambigsrecog.cpp /////////////////////////////////////////////////////////
   FILE *init_recog_training(const STRING &fname);

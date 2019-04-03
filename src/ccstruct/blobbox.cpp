@@ -2,7 +2,6 @@
  * File:        blobbox.cpp  (Formerly blobnbox.c)
  * Description: Code for the textord blob class.
  * Author:      Ray Smith
- * Created:     Thu Jul 30 09:08:51 BST 1992
  *
  * (C) Copyright 1992, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +29,7 @@
 #include "coutln.h"      // for C_OUTLINE_IT, C_OUTLINE, C_OUTLINE_LIST
 #include "environ.h"     // for l_uint32
 #include "helpers.h"     // for UpdateRange, IntCastRounded
-#include "host.h"        // for NearlyEqual, TRUE
+#include "host.h"        // for NearlyEqual
 #include "points.h"      // for operator+=, ICOORD::rotate
 
 struct Pix;
@@ -71,7 +70,7 @@ void BLOBNBOX::reflect_box_in_y_axis() {
 // correction can be applied.
 void BLOBNBOX::rotate_box(FCOORD rotation) {
   if (IsDiacritic()) {
-    ASSERT_HOST(rotation.x() >= kCosSmallAngle)
+    ASSERT_HOST(rotation.x() >= kCosSmallAngle);
     ICOORD top_pt((box.left() + box.right()) / 2, base_char_top_);
     ICOORD bottom_pt(top_pt.x(), base_char_bottom_);
     top_pt.rotate(rotation);
@@ -95,7 +94,7 @@ void BLOBNBOX::merge(                    //merge blobs
                     ) {
   box += nextblob->box;          //merge boxes
   set_diacritic_box(box);
-  nextblob->joined = TRUE;
+  nextblob->joined = true;
 }
 
 
@@ -227,7 +226,7 @@ void BLOBNBOX::CleanNeighbours() {
 int BLOBNBOX::GoodTextBlob() const {
   int score = 0;
   for (int dir = 0; dir < BND_COUNT; ++dir) {
-    BlobNeighbourDir bnd = static_cast<BlobNeighbourDir>(dir);
+    auto bnd = static_cast<BlobNeighbourDir>(dir);
     if (good_stroke_neighbour(bnd))
       ++score;
   }
@@ -238,7 +237,7 @@ int BLOBNBOX::GoodTextBlob() const {
 int BLOBNBOX::NoisyNeighbours() const {
   int count = 0;
   for (int dir = 0; dir < BND_COUNT; ++dir) {
-    BlobNeighbourDir bnd = static_cast<BlobNeighbourDir>(dir);
+    auto bnd = static_cast<BlobNeighbourDir>(dir);
     BLOBNBOX* blob = neighbour(bnd);
     if (blob != nullptr && blob->region_type() == BRT_NOISE)
       ++count;

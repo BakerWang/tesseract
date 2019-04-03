@@ -2,13 +2,7 @@
  ******************************************************************************
  *
  * File:        chop.cpp  (Formerly chop.c)
- * Description:
- * Author:       Mark Seaman, OCR Technology
- * Created:      Fri Oct 16 14:37:00 1987
- * Modified:     Tue Jul 30 16:41:11 1991 (Mark Seaman) marks@hpgrlt
- * Language:     C
- * Package:      N/A
- * Status:       Reusable Software Component
+ * Author:      Mark Seaman, OCR Technology
  *
  * (c) Copyright 1987, Hewlett-Packard Company.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,7 +121,7 @@ EDGEPT *Wordrec::pick_close_point(EDGEPT *critical_point,
   int found_better;
 
   do {
-    found_better = FALSE;
+    found_better = false;
 
     this_distance = edgept_dist (critical_point, vertical_point);
     if (this_distance <= *best_dist) {
@@ -139,12 +133,12 @@ EDGEPT *Wordrec::pick_close_point(EDGEPT *critical_point,
         *best_dist = this_distance;
         best_point = vertical_point;
         if (chop_vertical_creep)
-          found_better = TRUE;
+          found_better = true;
       }
     }
     vertical_point = vertical_point->next;
   }
-  while (found_better == TRUE);
+  while (found_better == true);
 
   return (best_point);
 }

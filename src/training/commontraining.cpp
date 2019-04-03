@@ -71,7 +71,6 @@ void ParseArguments(int* argc, char ***argv) {
 #include "emalloc.h"
 #include "featdefs.h"
 #include "fontinfo.h"
-#include "globals.h"
 #include "intfeaturespace.h"
 #include "mastertrainer.h"
 #include "mf.h"
@@ -578,13 +577,13 @@ void MergeInsignificantProtos(LIST ProtoList, const char* label,
                                              best_match->Mean,
                                              best_match->Mean, Prototype->Mean);
       Prototype->NumSamples = 0;
-      Prototype->Merged = 1;
+      Prototype->Merged = true;
     } else if (best_match != nullptr) {
       if (debug)
         tprintf("Red proto at %g,%g matched a green one at %g,%g\n",
                 Prototype->Mean[0], Prototype->Mean[1],
                 best_match->Mean[0], best_match->Mean[1]);
-      Prototype->Merged = 1;
+      Prototype->Merged = true;
     }
   }
   // Mark significant those that now have enough samples.

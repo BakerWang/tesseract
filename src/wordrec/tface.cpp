@@ -18,7 +18,6 @@
 
 #include "callcpp.h"
 #include "chop.h"
-#include "globals.h"
 #include "pageres.h"
 #include "wordrec.h"
 #include "featdefs.h"
@@ -142,7 +141,7 @@ BLOB_CHOICE_LIST *Wordrec::call_matcher(TBLOB *tessblob) {
   if (rotated_blob == nullptr) {
     rotated_blob = tessblob;
   }
-  BLOB_CHOICE_LIST *ratings = new BLOB_CHOICE_LIST();  // matcher result
+  auto *ratings = new BLOB_CHOICE_LIST();  // matcher result
   AdaptiveClassifier(rotated_blob, ratings);
   if (rotated_blob != tessblob) {
     delete rotated_blob;

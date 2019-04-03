@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <vector>       // for std::vector
 
-BOOL_VAR(textord_space_size_is_variable, FALSE,
+BOOL_VAR(textord_space_size_is_variable, false,
          "If true, word delimiter spaces are assumed to have "
          "variable width, even though characters have fixed pitch.");
 
@@ -87,8 +87,8 @@ class SimpleStats {
 
  private:
   static int float_compare(const void* a, const void* b) {
-    const float* f_a = static_cast<const float*>(a);
-    const float* f_b = static_cast<const float*>(b);
+    const auto* f_a = static_cast<const float*>(a);
+    const auto* f_b = static_cast<const float*>(b);
     return (*f_a > *f_b) ? 1 : ((*f_a < *f_b) ? -1 : 0);
   }
 
@@ -155,8 +155,8 @@ class LocalCorrelation {
 
  private:
   static int float_pair_compare(const void* a, const void* b) {
-    const float_pair* f_a = static_cast<const float_pair*>(a);
-    const float_pair* f_b = static_cast<const float_pair*>(b);
+    const auto* f_a = static_cast<const float_pair*>(a);
+    const auto* f_b = static_cast<const float_pair*>(b);
     return (f_a->x > f_b->x) ? 1 : ((f_a->x < f_b->x) ? -1 : 0);
   }
 
@@ -551,7 +551,7 @@ void FPRow::OutputEstimations() {
 
   // Setup char_cells.
   ICOORDELT_IT cell_it = &real_row_->char_cells;
-  ICOORDELT *cell = new ICOORDELT(real_body(0).left(), 0);
+  auto *cell = new ICOORDELT(real_body(0).left(), 0);
   cell_it.add_after_then_move(cell);
 
   int right = real_body(0).right();
@@ -977,7 +977,7 @@ FPAnalyzer::FPAnalyzer(ICOORD page_tr, TO_BLOCK_LIST *port_blocks)
     TO_BLOCK *block = block_it.data();
     if (!block->get_rows()->empty()) {
       ASSERT_HOST(block->xheight > 0);
-      find_repeated_chars(block, FALSE);
+      find_repeated_chars(block, false);
     }
   }
 

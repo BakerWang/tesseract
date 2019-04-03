@@ -176,7 +176,7 @@ bool Dict::NoDangerousAmbig(WERD_CHOICE *best_choice,
       // best_choice consisting from only the original letters will
       // have a rating of 0.0.
       for (i = 0; i < best_choice->length(); ++i) {
-        BLOB_CHOICE_LIST *lst = new BLOB_CHOICE_LIST();
+        auto *lst = new BLOB_CHOICE_LIST();
         BLOB_CHOICE_IT lst_it(lst);
         // TODO(rays/antonova) Put real xheights and y shifts here.
         lst_it.add_to_end(new BLOB_CHOICE(best_choice->unichar_id(i),
@@ -441,7 +441,7 @@ int Dict::LengthOfShortestAlphaRun(const WERD_CHOICE &WordChoice) const {
   int shortest = INT32_MAX;
   int curr_len = 0;
   for (int w = 0; w < WordChoice.length(); ++w) {
-    if (getUnicharset().get_isalpha(WordChoice.unichar_id(w))) {
+    if (WordChoice.unicharset()->get_isalpha(WordChoice.unichar_id(w))) {
       curr_len++;
     } else if (curr_len > 0) {
       if (curr_len < shortest) shortest = curr_len;

@@ -46,7 +46,6 @@ int16_t Tesseract::safe_dict_word(const WERD_RES *werd_res) {
 #include "control.h"
 #include "docqual.h"
 #include "globaloc.h"  // For err_exit.
-#include "globals.h"
 #include "helpers.h"
 
 #include "tesseractclass.h"
@@ -71,12 +70,12 @@ void Tesseract::set_done(WERD_RES *word, int16_t pass) {
   if (word->done && (pass == 1) && (!word_from_dict || word_is_ambig) &&
       one_ell_conflict(word, false)) {
     if (tessedit_rejection_debug) tprintf("one_ell_conflict detected\n");
-    word->done = FALSE;
+    word->done = false;
   }
   if (word->done && ((!word_from_dict &&
       word->best_choice->permuter() != NUMBER_PERM) || word_is_ambig)) {
     if (tessedit_rejection_debug) tprintf("non-dict or ambig word detected\n");
-      word->done = FALSE;
+      word->done = false;
   }
   if (tessedit_rejection_debug) {
     tprintf("set_done(): done=%d\n", word->done);
