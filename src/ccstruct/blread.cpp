@@ -44,19 +44,20 @@ bool read_unlv_file(                    //print list of sides
   BLOCK_IT block_it = blocks;    //block iterator
 
   name += UNLV_EXT;              //add extension
-  if ((pdfp = fopen (name.string (), "rb")) == nullptr) {
+  if ((pdfp = fopen (name.c_str (), "rb")) == nullptr) {
     return false;                //didn't read one
   } else {
     while (tfscanf(pdfp, "%d %d %d %d %*s", &x, &y, &width, &height) >= 4) {
                                  //make rect block
-      block = new BLOCK (name.string (), true, 0, 0,
-                         (int16_t) x, (int16_t) (ysize - y - height),
-                         (int16_t) (x + width), (int16_t) (ysize - y));
+      block = new BLOCK (name.c_str (), true, 0, 0,
+                         static_cast<int16_t>(x), static_cast<int16_t>(ysize - y - height),
+                         static_cast<int16_t>(x + width), static_cast<int16_t>(ysize - y));
                                  //on end of list
       block_it.add_to_end (block);
     }
     fclose(pdfp);
   }
+  tprintf("UZN file %s loaded.\n", name.c_str());
   return true;
 }
 

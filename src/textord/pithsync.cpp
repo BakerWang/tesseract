@@ -25,8 +25,6 @@
 #include "pithsync.h"
 #include "tprintf.h"
 
-#define PROJECTION_MARGIN 10     //arbitrary
-
 /**********************************************************************
  * FPCUTPT::setup
  *
@@ -165,7 +163,7 @@ void FPCUTPT::assign(                         //constructor
                 <= zero_count);
           }
           balance_count =
-            (int16_t) (balance_count * textord_balance_factor /
+            static_cast<int16_t>(balance_count * textord_balance_factor /
             projection_scale);
         }
         r_index = segpt->region_index + 1;
@@ -258,7 +256,7 @@ void FPCUTPT::assign_cheap(                         //constructor
           balance_count++;
           lead_flag &= lead_flag - 1;
         }
-        balance_count = (int16_t) (balance_count * textord_balance_factor
+        balance_count = static_cast<int16_t>(balance_count * textord_balance_factor
           / projection_scale);
       }
       r_index = segpt->region_index + 1;
@@ -529,7 +527,7 @@ double check_pitch_sync3(                          //find segmentation
   if ((pitch - 3) / 2 < pitch_error)
     pitch_error = (pitch - 3) / 2;
                                  //min dist of zero
-  zero_offset = (int16_t) (pitch * pitsync_joined_edge);
+  zero_offset = static_cast<int16_t>(pitch * pitsync_joined_edge);
   for (left_edge = projection_left; projection->pile_count (left_edge) == 0
     && left_edge < projection_right; left_edge++);
   for (right_edge = projection_right; projection->pile_count (right_edge) == 0
@@ -599,7 +597,7 @@ double check_pitch_sync3(                          //find segmentation
       }
       else {
         projection_offset =
-          (int16_t) (projection->pile_count (x) / projection_scale);
+          static_cast<int16_t>(projection->pile_count (x) / projection_scale);
         if (projection_offset > offset)
           offset = projection_offset;
         mid_cut = true;

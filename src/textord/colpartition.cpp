@@ -3,7 +3,6 @@
 // Description: Class to hold partitions of the page that correspond
 //              roughly to text lines.
 // Author:      Ray Smith
-// Created:     Thu Aug 14 10:54:01 PDT 2008
 //
 // (C) Copyright 2008, Google Inc.
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +28,7 @@
 #include "dppoint.h"
 #include "imagefind.h"
 #include "workingpartset.h"
+#include "host.h"              // for NearlyEqual
 
 #include <algorithm>
 
@@ -80,20 +80,10 @@ const int kMaxColorDistance = 900;
 // Vertical is the direction of logical vertical on the possibly skewed image.
 ColPartition::ColPartition(BlobRegionType blob_type, const ICOORD& vertical)
   : left_margin_(-INT32_MAX), right_margin_(INT32_MAX),
-    median_bottom_(INT32_MAX), median_top_(-INT32_MAX), median_height_(0),
-    median_left_(INT32_MAX), median_right_(-INT32_MAX), median_width_(0),
-    blob_type_(blob_type), flow_(BTFT_NONE), good_blob_score_(0),
-    good_width_(false), good_column_(false),
-    left_key_tab_(false), right_key_tab_(false),
-    left_key_(0), right_key_(0), type_(PT_UNKNOWN), vertical_(vertical),
-    working_set_(nullptr), last_add_was_vertical_(false), block_owned_(false),
-    desperately_merged_(false),
-    first_column_(-1), last_column_(-1), column_set_(nullptr),
-    side_step_(0), top_spacing_(0), bottom_spacing_(0),
-    type_before_table_(PT_UNKNOWN), inside_table_column_(false),
-    nearest_neighbor_above_(nullptr), nearest_neighbor_below_(nullptr),
-    space_above_(0), space_below_(0), space_to_left_(0), space_to_right_(0),
-    owns_blobs_(true) {
+    median_bottom_(INT32_MAX), median_top_(-INT32_MAX),
+    median_left_(INT32_MAX), median_right_(-INT32_MAX),
+    blob_type_(blob_type),
+    vertical_(vertical) {
   memset(special_blobs_densities_, 0, sizeof(special_blobs_densities_));
 }
 
@@ -602,8 +592,8 @@ void ColPartition::ComputeSpecialBlobsDensity() {
     special_blobs_densities_[type]++;
   }
 
-  for (int type = 0; type < BSTT_COUNT; ++type) {
-    special_blobs_densities_[type] /= boxes_.length();
+  for (float& special_blobs_density : special_blobs_densities_) {
+    special_blobs_density /= boxes_.length();
   }
 }
 
@@ -645,7 +635,7 @@ ColPartition* ColPartition::SingletonPartner(bool upper) {
 }
 
 // Merge with the other partition and delete it.
-void ColPartition::Absorb(ColPartition* other, WidthCallback* cb) {
+void ColPartition::Absorb(ColPartition* other, WidthCallback cb) {
   // The result has to either own all of the blobs or none of them.
   // Verify the flag is consistent.
   ASSERT_HOST(owns_blobs() == other->owns_blobs());
@@ -1077,10 +1067,10 @@ void ColPartition::ColumnRange(int resolution, ColPartitionSet* columns,
 }
 
 // Sets the internal flags good_width_ and good_column_.
-void ColPartition::SetColumnGoodness(WidthCallback* cb) {
+void ColPartition::SetColumnGoodness(WidthCallback cb) {
   int y = MidY();
   int width = RightAtY(y) - LeftAtY(y);
-  good_width_ = cb->Run(width);
+  good_width_ = cb(width);
   good_column_ = blob_type_ == BRT_TEXT && left_key_tab_ && right_key_tab_;
 }
 

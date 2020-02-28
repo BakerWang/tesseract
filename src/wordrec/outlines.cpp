@@ -1,5 +1,4 @@
-/* -*-C-*-
- ********************************************************************************
+/******************************************************************************
  *
  * File:         outlines.cpp  (Formerly outlines.c)
  * Description:  Combinatorial Splitter
@@ -16,10 +15,7 @@
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
  *
- ********************************************************************************
- * Revision 1.2  89/09/15  09:24:41  09:24:41  marks (Mark Seaman)
- * First released version of Combinatorial splitter code
- **/
+ *****************************************************************************/
 /*----------------------------------------------------------------------
               I n c l u d e s
 ----------------------------------------------------------------------*/
@@ -52,7 +48,7 @@ bool Wordrec::near_point(EDGEPT *point,
 
   if (x0 == x1) {
                                  /* Handle vertical line */
-    p.x = (int16_t) x0;
+    p.x = static_cast<int16_t>(x0);
     p.y = point->pos.y;
   }
   else {
@@ -61,9 +57,9 @@ bool Wordrec::near_point(EDGEPT *point,
     intercept = y1 - x1 * slope;
 
     /* Find perpendicular */
-    p.x = (int16_t) ((point->pos.x + (point->pos.y - intercept) * slope) /
+    p.x = static_cast<int16_t>((point->pos.x + (point->pos.y - intercept) * slope) /
       (slope * slope + 1));
-    p.y = (int16_t) (slope * p.x + intercept);
+    p.y = static_cast<int16_t>(slope * p.x + intercept);
   }
 
   if (is_on_line (p, line_pt_0->pos, line_pt_1->pos) &&

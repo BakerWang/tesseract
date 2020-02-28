@@ -26,7 +26,7 @@
 #include <cmath>
 #include <cstdlib>
 #include "errcode.h"
-#include "helpers.h"
+#include <tesseract/helpers.h>
 #include "scrollview.h"
 #include "tprintf.h"
 
@@ -46,12 +46,6 @@ STATS::STATS(int32_t min_bucket_value, int32_t max_bucket_value_plus_1) {
   rangemax_ = max_bucket_value_plus_1;
   buckets_ = new int32_t[rangemax_ - rangemin_];
   clear();
-}
-
-STATS::STATS() {
-  rangemax_ = 0;
-  rangemin_ = 0;
-  buckets_ = nullptr;
 }
 
 /**********************************************************************
@@ -656,7 +650,7 @@ int32_t choose_nth_item(int32_t index, float *array, int32_t count) {
       index = 0;                 // ensure legal
     else if (index >= count)
       index = count - 1;
-    equal_count = (int32_t) (rand() % count);
+    equal_count = static_cast<int32_t>(rand() % count);
     pivot = array[equal_count];
                                  // fill gap
     array[equal_count] = array[0];
@@ -712,7 +706,7 @@ int32_t choose_nth_item(int32_t index, void *array, int32_t count, size_t size,
   if (count <= 1)
     return 0;
   if (count == 2) {
-    if (compar (array, (char *) array + size) < 0) {
+    if (compar (array, static_cast<char *>(array) + size) < 0) {
       return index >= 1 ? 1 : 0;
     }
     else {
@@ -723,15 +717,15 @@ int32_t choose_nth_item(int32_t index, void *array, int32_t count, size_t size,
     index = 0;                   // ensure legal
   else if (index >= count)
     index = count - 1;
-  pivot = (int32_t) (rand () % count);
+  pivot = static_cast<int32_t>(rand () % count);
   swap_entries (array, size, pivot, 0);
   next_lesser = 0;
   prev_greater = count;
   equal_count = 1;
   for (next_sample = 1; next_sample < prev_greater;) {
     result =
-      compar ((char *) array + size * next_sample,
-      (char *) array + size * next_lesser);
+      compar (static_cast<char *>(array) + size * next_sample,
+      static_cast<char *>(array) + size * next_lesser);
     if (result < 0) {
       swap_entries (array, size, next_lesser++, next_sample++);
       // shuffle
@@ -751,7 +745,7 @@ int32_t choose_nth_item(int32_t index, void *array, int32_t count, size_t size,
     return next_lesser;          // in equal bracket
   else
     return choose_nth_item (index - prev_greater,
-      (char *) array + size * prev_greater,
+      static_cast<char *>(array) + size * prev_greater,
       count - prev_greater, size,
       compar) + prev_greater;
 }

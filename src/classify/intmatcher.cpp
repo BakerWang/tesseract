@@ -31,7 +31,7 @@
 #include "callcpp.h"
 #include "scrollview.h"
 #include "float2int.h"
-#include "helpers.h"
+#include <tesseract/helpers.h>
 #include "classify.h"
 #include "shapetable.h"
 
@@ -44,8 +44,8 @@ using tesseract::UnicharRating;
 // Parameters of the sigmoid used to convert similarity to evidence in the
 // similarity_evidence_table_ that is used to convert distance metric to an
 // 8 bit evidence value in the secondary matcher. (See IntMatcher::Init).
-const float IntegerMatcher::kSEExponentialMultiplier = 0.0;
-const float IntegerMatcher::kSimilarityCenter = 0.0075;
+const float IntegerMatcher::kSEExponentialMultiplier = 0.0f;
+const float IntegerMatcher::kSimilarityCenter = 0.0075f;
 
 static const uint8_t offset_table[] = {
   255, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3,
@@ -96,7 +96,6 @@ namespace tesseract {
  * @param n Number of elements to sort
  * @param ra     Key array [1..n]
  * @param rb     Index array [1..n]
- * @return none
  */
 static void
 HeapSort (int n, int ra[], int rb[]) {
@@ -363,7 +362,7 @@ class ClassPruner {
             if (norm_count_[class_id] >= pruning_threshold_) {
               tprintf(" %s=%d,",
                       classify.ClassIDToDebugStr(int_templates,
-                                                 class_id, 0).string(),
+                                                 class_id, 0).c_str(),
                       pruner_word & CLASS_PRUNER_CLASS_MASK);
             }
             pruner_word >>= NUM_BITS_PER_CLASS;
@@ -386,7 +385,7 @@ class ClassPruner {
       STRING class_string = classify.ClassIDToDebugStr(int_templates,
                                                        class_id, 0);
       tprintf("%s:Initial=%d, E=%d, Xht-adj=%d, N=%d, Rat=%.2f\n",
-              class_string.string(),
+              class_string.c_str(),
               class_count_[class_id],
               expected_num_features[class_id],
               (norm_multiplier * normalization_factors[class_id]) >> 8,
@@ -403,7 +402,7 @@ class ClassPruner {
     results->init_to_size(num_classes_, empty);
     for (int c = 0; c < num_classes_; ++c) {
       (*results)[c].Class = sort_index_[num_classes_ - c];
-      (*results)[c].Rating = 1.0 - sort_key_[num_classes_ - c] /
+      (*results)[c].Rating = 1.0f - sort_key_[num_classes_ - c] /
         (static_cast<float>(CLASS_PRUNER_CLASS_MASK) * num_features_);
     }
     return num_classes_;
@@ -508,7 +507,6 @@ int Classify::PruneClasses(const INT_TEMPLATES_STRUCT* int_templates,
  * param NormalizationFactor Fudge factor from blob normalization process
  * param Result Class rating & configuration: (0.0 -> 1.0), 0=bad, 1=good
  * param Debug Debugger flag: 1=debugger on
- * @return none
  */
 void IntegerMatcher::Match(INT_CLASS ClassTemplate,
                            BIT_VECTOR ProtoMask,
@@ -573,7 +571,7 @@ void IntegerMatcher::Match(INT_CLASS ClassTemplate,
 
 /**
  * FindGoodProtos finds all protos whose normalized proto-evidence
- * exceed classify_adapt_proto_thresh.  The list is ordered by increasing
+ * exceed AdaptProtoThreshold.  The list is ordered by increasing
  * proto id number.
  *
  * Globals:
@@ -714,17 +712,17 @@ IntegerMatcher::IntegerMatcher(tesseract::IntParam *classify_debug_level)
   /* Initialize table for evidence to similarity lookup */
   for (int i = 0; i < SE_TABLE_SIZE; i++) {
     uint32_t IntSimilarity = i << (27 - SE_TABLE_BITS);
-    double Similarity = ((double) IntSimilarity) / 65536.0 / 65536.0;
+    double Similarity = (static_cast<double>(IntSimilarity)) / 65536.0 / 65536.0;
     double evidence = Similarity / kSimilarityCenter;
     evidence = 255.0 / (evidence * evidence + 1.0);
 
     if (kSEExponentialMultiplier > 0.0) {
       double scale = 1.0 - exp(-kSEExponentialMultiplier) *
-        exp(kSEExponentialMultiplier * ((double) i / SE_TABLE_SIZE));
+        exp(kSEExponentialMultiplier * (static_cast<double>(i) / SE_TABLE_SIZE));
       evidence *= ClipToRange(scale, 0.0, 1.0);
     }
 
-    similarity_evidence_table_[i] = (uint8_t) (evidence + 0.5);
+    similarity_evidence_table_[i] = static_cast<uint8_t>(evidence + 0.5);
   }
 
   /* Initialize evidence computation variables */
@@ -752,12 +750,11 @@ void ScratchEvidence::ClearFeatureEvidence(const INT_CLASS class_template) {
 
 /**
  * Print debugging information for Configurations
- * @return none
  */
 static void IMDebugConfiguration(int FeatureNum, uint16_t ActualProtoNum,
                                  uint8_t Evidence, uint32_t ConfigWord) {
   cprintf ("F = %3d, P = %3d, E = %3d, Configs = ",
-    FeatureNum, (int) ActualProtoNum, (int) Evidence);
+    FeatureNum, static_cast<int>(ActualProtoNum), static_cast<int>(Evidence));
   while (ConfigWord) {
     if (ConfigWord & 1)
       cprintf ("1");
@@ -770,7 +767,6 @@ static void IMDebugConfiguration(int FeatureNum, uint16_t ActualProtoNum,
 
 /**
  * Print debugging information for Configurations
- * @return none
  */
 static void IMDebugConfigurationSum(int FeatureNum, uint8_t *FeatureEvidence,
                                     int32_t ConfigCount) {
@@ -790,7 +786,7 @@ static void IMDebugConfigurationSum(int FeatureNum, uint8_t *FeatureEvidence,
  * @param Feature Pointer to a feature struct
  * @param tables Evidence tables
  * @param Debug Debugger flag: 1=debugger on
- * @return none
+ * @return sum of feature evidence tables
  */
 int IntegerMatcher::UpdateTablesForFeature(
     INT_CLASS ClassTemplate,
@@ -826,7 +822,7 @@ int IntegerMatcher::UpdateTablesForFeature(
   for (ProtoSetIndex = 0, ActualProtoNum = 0;
   ProtoSetIndex < ClassTemplate->NumProtoSets; ProtoSetIndex++) {
     ProtoSet = ClassTemplate->ProtoSets[ProtoSetIndex];
-    ProtoPrunerPtr = (uint32_t *) ((*ProtoSet).ProtoPruner);
+    ProtoPrunerPtr = reinterpret_cast<uint32_t *>((*ProtoSet).ProtoPruner);
     for (ProtoNum = 0; ProtoNum < PROTOS_PER_PROTO_SET;
       ProtoNum += (PROTOS_PER_PROTO_SET >> 1), ActualProtoNum +=
     (PROTOS_PER_PROTO_SET >> 1), ProtoMask++, ProtoPrunerPtr++) {
@@ -931,7 +927,6 @@ int IntegerMatcher::UpdateTablesForFeature(
 
 /**
  * Print debugging information for Configurations
- * @return none
  */
 #ifndef GRAPHICS_DISABLED
 void IntegerMatcher::DebugFeatureProtoError(
@@ -960,7 +955,7 @@ void IntegerMatcher::DebugFeatureProtoError(
     for (ConfigNum = 0; ConfigNum < ClassTemplate->NumConfigs; ConfigNum++) {
       cprintf(
           " %5.1f",
-          100.0 * (1.0 - (float)tables.sum_feature_evidence_[ConfigNum]
+          100.0 * (1.0 - static_cast<float>(tables.sum_feature_evidence_[ConfigNum])
           / NumFeatures / 256.0));
     }
     cprintf("\n\n\n");
@@ -1042,7 +1037,7 @@ void IntegerMatcher::DebugFeatureProtoError(
     cprintf ("Proto Length for Configurations:\n");
     for (ConfigNum = 0; ConfigNum < ClassTemplate->NumConfigs; ConfigNum++)
       cprintf (" %4.1f",
-        (float) ClassTemplate->ConfigLengths[ConfigNum]);
+        static_cast<float>(ClassTemplate->ConfigLengths[ConfigNum]));
     cprintf ("\n\n");
   }
 
